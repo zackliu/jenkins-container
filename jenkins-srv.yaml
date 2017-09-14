@@ -1,0 +1,60 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: azdisk
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: azuredisk
+---
+kind: Pod
+apiVersion: v1
+metadata:
+  name: jenkins-1
+  labels:
+    app: jenkins-1
+spec:
+  containers:
+  - name: jenkins-container
+    image: zackliu1995/jenkins
+    volumeMounts:
+    - name: azure
+      mountPath: /var/jenkins_home
+    securityContext:
+      privileged: true
+    ports:
+      - name: port8080
+        containerPort: 8080
+      - name: port50000
+        containerPort: 50000
+      - name: port22
+        containerPort: 22
+  volumes:
+    - name: azure
+      persistentVolumeClaim:
+        claimName: azdisk
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jenkins-srv
+spec:
+  selector:
+    app: jenkins-1
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+    - name: slave
+      port: 50000
+      targetPort: 50000
+    - name: ssh
+      port: 22
+      targetPort: 22
+  type: LoadBalancer
+    
+
+  
