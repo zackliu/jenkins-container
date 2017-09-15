@@ -10,32 +10,45 @@ spec:
       storage: 5Gi
   storageClassName: azuredisk
 ---
-kind: Pod
-apiVersion: v1
+kind: Deployment
+apiVersion: apps/v1beta1
 metadata:
   name: jenkins-1
-  labels:
-    app: jenkins-1
 spec:
-  containers:
-  - name: jenkins-container
-    image: zackliu1995/jenkins
-    volumeMounts:
-    - name: azure
-      mountPath: /var/jenkins_home
-    securityContext:
-      privileged: true
-    ports:
-      - name: port8080
-        containerPort: 8080
-      - name: port50000
-        containerPort: 50000
-      - name: port22
-        containerPort: 22
-  volumes:
-    - name: azure
-      persistentVolumeClaim:
-        claimName: azdisk
+  replicas: 1
+  template:
+    metadata:
+      name: jenkins-1
+      labels:
+        app: jenkins-1
+    spec:
+      containers:
+      - name: jenkins-container
+        image: zackliu1995/jenkins
+        env:
+        - name: JAVA_OPTS
+          value: "-Xdebug -Xrunjdwp:transport=dt_socket,server=y,address=8000,suspend=n"
+        volumeMounts:
+        - name: azure
+          mountPath: /var/jenkins_home
+        securityContext:
+          privileged: true
+        ports:
+          - name: port8080
+            containerPort: 8080
+            protocol: TCP
+          - name: port8000
+            containerPort: 8000
+            protocol: TCP
+          - name: port50000
+            containerPort: 50000
+            protocol: TCP
+          - name: port22
+            containerPort: 22
+      volumes:
+        - name: azure
+          persistentVolumeClaim:
+            claimName: azdisk
 ---
 apiVersion: v1
 kind: Service
@@ -47,14 +60,17 @@ spec:
   ports:
     - name: http
       port: 80
+      protocol: TCP
       targetPort: 8080
+    - name: debug
+      port: 8000
+      protocol: TCP
+      targetPort: 8000
     - name: slave
       port: 50000
+      protocol: TCP
       targetPort: 50000
     - name: ssh
       port: 22
       targetPort: 22
   type: LoadBalancer
-    
-
-  
