@@ -4,4 +4,4 @@ metadata:
   name: azuredisk
 provisioner: kubernetes.io/azure-disk
 parameters:
-  storageAccount: chenylk8s
+  storageAccount: chenyl

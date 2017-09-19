@@ -10,6 +10,16 @@ spec:
       labels:
         app: jenkins-t
     spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 1
+            preference:
+              matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - k8s-agent-309f2876-0
       containers:
       - name: jenkins-container
         image: jenkins
